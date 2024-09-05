@@ -1,0 +1,53 @@
+/* NavBar.css */
+
+/* Styles for the navbar */
+.navbar {
+  padding: 0.5rem 1rem;
+}
+
+/* Logo styles */
+.navbar-logo {
+  height: 40px; /* Adjust the height as needed */
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* Title styles */
+.navbar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #000;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Navbar items */
+.navbar-nav {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 992px) {
+  .navbar-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Link styles */
+.nav-link {
+  margin-right: 1rem;
+  color: #000;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #007bff;
+}
+
+/* Active link styles */
+.nav-item .active {
+  font-weight: bold;
+  color: #007bff;
+}

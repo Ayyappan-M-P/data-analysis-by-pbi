@@ -1,0 +1,48 @@
+/* Analysis.css */
+
+.analysis-page {
+    padding: 2rem;
+    background-color: #f0f4f8; /* LightBlue */
+    min-height: 100vh;
+  }
+  
+  .upload-section {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  
+  .upload-dragger {
+    padding: 2rem;
+    border: 2px dashed #1e90ff; /* DodgerBlue */
+    background-color: #ffffff; /* White */
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .upload-dragger:hover {
+    border-color: #87cefa; /* LightSkyBlue */
+  }
+  
+  .ant-upload-drag-icon {
+    font-size: 3rem;
+    color: #1e90ff; /* DodgerBlue */
+  }
+  
+  .ant-upload-text {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #1e90ff; /* DodgerBlue */
+  }
+  
+  .upload-list {
+    margin-top: 2rem;
+  }
+  
+  .ant-list-item-meta-title {
+    color: #333;
+  }
+  
+  .ant-progress-inner {
+    background-color: #87cefa; /* LightSkyBlue */
+  }
+  

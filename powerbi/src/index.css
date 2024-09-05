@@ -1,0 +1,50 @@
+/* index.css */
+
+/* Ensure the app takes the full viewport height */
+html, body {
+  height: 100%;
+}
+
+/* Ensure the container grows to fill available space */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.container {
+  flex: 1;
+}
+
+/* Center the main content */
+.container > h1 {
+  text-align: center;
+}
+
+.container > p {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* Input form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-label {
+  font-weight: bold;
+}
+
+/* Report display styles */
+iframe {
+  border: none;
+  border-radius: 8px;
+}
+
+/* Add some spacing to the data submitted section */
+.container > div {
+  margin-top: 20px;
+}
