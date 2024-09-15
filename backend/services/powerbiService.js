@@ -1,51 +1,63 @@
-const msal = require('@azure/msal-node');
 const axios = require('axios');
-const config = require('../config/config');
+const msal = require('@azure/msal-node'); // Microsoft Authentication Library
 
-const msalConfig = {
-    auth: {
-        clientId: config.clientId,
-        authority: config.authorityUrl,
-        clientSecret: config.clientSecret
-    }
-};
+class PowerBiService {
+  constructor() {
+    this.config = {
+      clientId: '18e93edb-4a8c-404e-9b07-15cc9e303c1e',
+      clientSecret: 'ad33b89f-a22c-4041-9bdc-9cd1d768bf69',
+      tenantId: '70ad6609-70d8-4962-a379-3581f839202a',
+      workspaceId: '0d3b31ea-6b41-4641-beb1-7f63d1042e63',
+    };
+    this.apiUrl = 'https://api.powerbi.com/v1.0/myorg/';
+  }
 
-const pca = new msal.ConfidentialClientApplication(msalConfig);
+//   CLIENT_ID=18e93edb-4a8c-404e-9b07-15cc9e303c1e
+// CLIENT_SECRET=ad33b89f-a22c-4041-9bdc-9cd1d768bf69
+// TENANT_ID=70ad6609-70d8-4962-a379-3581f839202a
+// REDIRECT_URI=http://localhost:5173/auth/callback
 
-const getAccessToken = async () => {
-    const tokenRequest = {
-        scopes: ["https://graph.microsoft.com/.default"],
+
+  // Function to get an access token using MSAL
+  async getAccessToken() {
+    const msalConfig = {
+      auth: {
+        clientId: this.config.clientId,
+        authority: `https://login.microsoftonline.com/${this.config.tenantId}`,
+        clientSecret: this.config.clientSecret,
+      },
     };
 
-    try {
-        const response = await pca.acquireTokenByClientCredential(tokenRequest);
-        return response.accessToken;
-    } catch (error) {
-        console.error('Error acquiring access token:', error);
-        throw error;
-    }
-};
+    const cca = new msal.ConfidentialClientApplication(msalConfig);
+    const tokenResponse = await cca.acquireTokenByClientCredential({
+      scopes: ['https://analysis.windows.net/powerbi/api/.default'],
+    });
+    
+    return tokenResponse.accessToken;
+  }
 
-const uploadDataset = async (accessToken, dataset) => {
-    const url = `${config.powerBiApiUrl}v1.0/myorg/datasets`;
+  // Function to upload and analyze dataset in Power BI
+  async uploadAndAnalyzeDataset(dataset) {
+    const accessToken = await this.getAccessToken();
 
-    try {
-        const response = await axios.post(url, dataset, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error uploading dataset:', error);
-        throw error;
-    }
-};
+    // Upload dataset to Power BI (assuming you have an import API)
+    const importUrl = `${this.apiUrl}groups/${this.config.workspaceId}/imports`;
+    const formData = new FormData();
+    formData.append('dataset', dataset.path);
 
-// Additional Power BI functions like createReport, getReport, etc. can be added here.
+    const uploadResponse = await axios.post(importUrl, formData, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-module.exports = {
-    getAccessToken,
-    uploadDataset
-};
+    const reportId = uploadResponse.data.id; // Report ID from the response
+
+    // Generate embed information for the Power BI report
+    const embedUrl = `${this.apiUrl}groups/${this.config.workspaceId}/reports/${reportId}`;
+    return { embedUrl, accessToken, reportId };
+  }
+}
+
+module.exports = PowerBiService;

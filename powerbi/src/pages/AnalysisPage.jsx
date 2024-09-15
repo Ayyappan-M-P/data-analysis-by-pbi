@@ -156,46 +156,65 @@
 // UploadDataset.js
 // src/pages/AnalysisPage.js
 import React, { useState } from 'react';
+import axios from 'axios';
+import { PowerBIEmbed } from 'powerbi-client-react'; // Power BI embed component
 
 const AnalysisPage = () => {
-  const [file, setFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [embedUrl, setEmbedUrl] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const [reportId, setReportId] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleAnalyzeDataset = async () => {
-    if (!file) return alert('Please upload a dataset first.');
-
-    setIsLoading(true);
-
+  const handleAnalyzeDataset = async (file) => {
     const formData = new FormData();
     formData.append('dataset', file);
 
-    // Assuming your backend has an endpoint for handling file uploads and analysis
-    const response = await fetch('http://localhost:3000/api/analyze-dataset', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const response = await axios.post('http://localhost:3000/api/analyze-dataset', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    if (response.ok) {
-      // Handle the successful analysis (e.g., redirect to report or dashboard page)
-      alert('Dataset analyzed successfully!');
-    } else {
-      alert('Failed to analyze dataset.');
+      // Get embed details from the response
+      const { embedUrl, accessToken, embedReportId } = response.data;
+      setEmbedUrl(embedUrl);
+      setAccessToken(accessToken);
+      setReportId(embedReportId);
+    } catch (error) {
+      console.error('Failed to analyze dataset:', error);
+      setError('Failed to analyze dataset');
     }
-
-    setIsLoading(false);
   };
 
   return (
     <div>
       <h2>Upload and Analyze Dataset</h2>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleAnalyzeDataset} disabled={isLoading}>
-        {isLoading ? 'Analyzing...' : 'Analyze Dataset'}
-      </button>
+      <input type="file" onChange={(e) => handleAnalyzeDataset(e.target.files[0])} />
+      {error && <p>{error}</p>}
+
+      {embedUrl && accessToken && (
+        <div>
+          <h3>Analysis Report</h3>
+          <PowerBIEmbed
+            embedConfig={{
+              type: 'report',
+              id: reportId,
+              embedUrl: embedUrl,
+              accessToken: accessToken,
+              tokenType: models.TokenType.Aad,
+              settings: {
+                panes: {
+                  filters: {
+                    visible: false,
+                  },
+                },
+              },
+            }}
+            cssClassName="powerbi-report"
+          />
+        </div>
+      )}
     </div>
   );
 };

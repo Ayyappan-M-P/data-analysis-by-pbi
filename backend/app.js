@@ -72,43 +72,51 @@
 // });
 
 
-// backend/server.js
-
 const express = require('express');
-const fileUpload = require('express-fileupload');
 const cors = require('cors');
-const path = require('path');
+const mongoose = require('mongoose');
+const multer = require('multer');
+const PowerBiService = require('./services/powerbiService'); // Power BI service to handle embedding
 
 const app = express();
+const port = 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(fileUpload());
 
-// Endpoint for handling file uploads and analysis
-app.post('/api/analyze-dataset', (req, res) => {
-    if (!req.files || Object.keys(req.files).length === 0) {
-        return res.status(400).send('No files were uploaded.');
-    }
+const upload = multer({ dest: 'uploads/' });
 
-    // Access the uploaded file
-    let dataset = req.files.dataset;
+// MongoDB connection
+mongoose.connect('mongodb://127.0.0.1:27017/pbi', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
-    // Process the dataset (for example, save it to the server, analyze it, etc.)
-    // For now, we'll just send a response back saying it was received
-    dataset.mv(path.join(__dirname, 'uploads', dataset.name), (err) => {
-        if (err) {
-            return res.status(500).send(err);
-        }
+// Route to handle dataset upload and analysis
+app.post('/api/analyze-dataset', upload.single('dataset'), async (req, res) => {
+  const dataset = req.file; // The uploaded dataset
+  const powerBiService = new PowerBiService();
 
-        // After processing the dataset, send back a success response
-        res.send('File uploaded and analyzed successfully');
+  try {
+    // Upload dataset to Power BI and get embed info (like embedUrl and accessToken)
+    const reportEmbedInfo = await powerBiService.uploadAndAnalyzeDataset(dataset);
+
+    // Send embed information to frontend
+    res.json({
+      success: true,
+      embedUrl: reportEmbedInfo.embedUrl,
+      accessToken: reportEmbedInfo.accessToken,
+      embedReportId: reportEmbedInfo.reportId,
     });
+  } catch (error) {
+    console.error('Failed to analyze dataset:', error);
+    res.status(500).json({ success: false, message: 'Failed to analyze dataset' });
+  }
 });
 
-// Start the server
-const PORT = process.env.PORT || 9000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
+
